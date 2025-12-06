@@ -111,3 +111,42 @@
             rr:datatype xsd:boolean 
         ]
     ] .
+
+<#SteamPlayerInteraction> a rr:TriplesMap;
+    rml:logicalSource [
+        a rml:LogicalSource;
+        rml:source "steam-200k.csv";
+        rml:referenceFormulation ql:CSV;
+    ];
+
+    rr:subjectMap [
+        a rr:SubjectMap;
+        rr:template "http://game.com/interaction/{user_id}_{game_name}_{behavior}";
+        rr:class <http://game.com/vocab#PlayerInteraction>;
+    ];
+
+    rr:predicateObjectMap [
+        rr:predicate <http://game.com/vocab#hasPlayer>;
+        rr:objectMap [ rr:template "http://game.com/steam/user/{user_id}" ];
+    ];
+
+    rr:predicateObjectMap [
+        rr:predicate <http://game.com/vocab#relatedGame>;
+        rr:objectMap [
+            rr:parentTriplesMap <#SteamGames>;
+            rr:joinCondition [
+                rr:child "game_name";
+                rr:parent "name";
+            ];
+        ];
+    ];
+
+    rr:predicateObjectMap [
+        rr:predicate <http://game.com/vocab#behavior>;
+        rr:objectMap [ rml:reference "behavior"; rr:datatype xsd:string ];
+    ];
+
+    rr:predicateObjectMap [
+        rr:predicate <http://game.com/vocab#value>;
+        rr:objectMap [ rml:reference "value"; rr:datatype xsd:decimal ];
+    ].
