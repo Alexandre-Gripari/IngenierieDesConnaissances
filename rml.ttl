@@ -28,32 +28,39 @@
         rr:class schema:VideoGame;
     ] ;
 
+    # rr:predicateObjectMap [
+    #     rr:predicate schema:datePublished ;
+    #     rr:objectMap [
+    #         fn:functionValue [
+    #             rr:predicateObjectMap [
+    #                 rr:predicate fno:executes;
+    #                 rr:objectMap [ rr:constant grel:date_toDate ]
+    #             ];
+    #             rr:predicateObjectMap [
+    #                 rr:predicate grel:valueParameter ; 
+    #                 rr:objectMap [ rml:reference "$.release_date" ]
+    #             ] ;
+    #             rr:predicateObjectMap [
+    #                 rr:predicate grel:p_string_pattern ;
+    #                 rr:objectMap [ rr:constant "MMM DD, YYYY" ]
+    #             ]
+    #         ]
+    #     ]
+    # ] ;
+
     rr:predicateObjectMap [
         rr:predicate schema:datePublished ;
         rr:objectMap [
-            fn:functionValue [
-                rr:predicateObjectMap [
-                    rr:predicate fno:executes;
-                    rr:objectMap [ rr:constant grel:date_toDate ]
-                ];
-                rr:predicateObjectMap [
-                    rr:predicate grel:valueParameter ; 
-                    rr:objectMap [ rml:reference "$.release_date" ]
-                ] ;
-                rr:predicateObjectMap [
-                    rr:predicate grel:p_string_pattern ;
-                    rr:objectMap [ rr:constant "MMM DD, YYYY" ]
-                ]
-            ]
+            rml:reference "release_date" ; 
+            rr:datatype xsd:string 
         ]
     ] ;
-
 
     rr:predicateObjectMap [
         rr:predicate vg:requiredAge ;
         rr:objectMap [ 
-        rml:reference "required_age" ;
-        rr:datatype xsd:integer 
+            rml:reference "required_age" ;
+            rr:datatype xsd:integer 
         ]
     ] ;
 
@@ -90,27 +97,62 @@
 
     rr:predicateObjectMap [
         rr:predicate vg:supportsWindows ;
-        rr:objectMap [ 
-            rml:reference "windows" ;
-            rr:datatype xsd:boolean 
-        ]
+        rr:objectMap [ rml:reference "windows" ; rr:datatype xsd:boolean ]
     ] ;
-
     rr:predicateObjectMap [
         rr:predicate vg:supportsMac ;
+        rr:objectMap [ rml:reference "mac" ; rr:datatype xsd:boolean ]
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate vg:supportsLinux ;
+        rr:objectMap [ rml:reference "linux" ; rr:datatype xsd:boolean ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:genre ;
         rr:objectMap [ 
-            rml:reference "mac" ;
-            rr:datatype xsd:boolean 
+            rr:template "http://game.com/vocab/genre/{genres[*]}" ; 
+            rr:termType rr:IRI 
         ]
     ] ;
 
     rr:predicateObjectMap [
-        rr:predicate vg:supportsLinux ;
+        rr:predicate schema:creator ;
         rr:objectMap [ 
-            rml:reference "linux" ;
-            rr:datatype xsd:boolean 
+            rr:template "http://game.com/vocab/developer/{developers[*]}" ; 
+            rr:termType rr:IRI 
         ]
     ] .
+
+<#SteamGenres> a rr:TriplesMap;
+    rml:logicalSource [
+        rml:source "games.json";
+        rml:referenceFormulation ql:JSONPath;
+        rml:iterator "$.*.genres[*]"; 
+    ];
+    rr:subjectMap [
+        rr:template "http://game.com/vocab/genre/{.}";
+        rr:class schema:Genre;
+    ];
+    rr:predicateObjectMap [
+        rr:predicate rdfs:label;
+        rr:objectMap [ rml:reference "." ]
+    ].
+
+<#SteamDevelopers> a rr:TriplesMap;
+    rml:logicalSource [
+        rml:source "games.json";
+        rml:referenceFormulation ql:JSONPath;
+        rml:iterator "$.*.developers[*]";
+    ];
+    rr:subjectMap [
+        rr:template "http://game.com/vocab/developer/{.}";
+        rr:class schema:Organization;
+    ];
+    rr:predicateObjectMap [
+        rr:predicate rdfs:label;
+        rr:objectMap [ rml:reference "." ]
+    ].
 
 <#SteamPlayerInteraction> a rr:TriplesMap;
     rml:logicalSource [
