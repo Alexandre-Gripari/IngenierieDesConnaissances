@@ -10,7 +10,7 @@ output_file = 'steam-200k_filtered.csv'
 def clean_steam_data():
     # 1. Vérification de la présence des fichiers
     if not os.path.exists(csv_file) or not os.path.exists(txt_file):
-        print("Erreur : Assurez-vous que 'steam-200k_cleaned.csv' et 'missing_game2.txt' sont bien dans le dossier.")
+        print("Erreur : Assurez-vous que 'steam-200k_cleaned.csv' et 'missing_game.txt' sont bien dans le dossier.")
         return
 
     print("Chargement de la liste des jeux à supprimer...")

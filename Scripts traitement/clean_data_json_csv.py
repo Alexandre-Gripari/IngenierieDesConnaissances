@@ -85,6 +85,7 @@ def process_csv_file(input_filename, output_filename):
 
         reader = csv.reader(f_in)
         writer = csv.writer(f_out)
+        writer.writerow(["user_id","game_name","behavior","value"])
 
         for row in reader:
             if len(row) > 1:  # On suppose que le nom est à l'index 1
@@ -92,6 +93,7 @@ def process_csv_file(input_filename, output_filename):
 
                 # APPEL DE LA FONCTION DE NETTOYAGE
                 clean_name = normalize_game_name(original_name, False)
+                del row[-1]
 
                 if clean_name != original_name:  # Comparaison approximative
                     row[1] = clean_name
