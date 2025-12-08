@@ -1,0 +1,211 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix rml: <http://semweb.mmlab.be/ns/rml#> .
+@prefix ql: <http://semweb.mmlab.be/ns/ql#> .
+
+@prefix fn: <http://semweb.mmlab.be/ns/fnml#> .
+@prefix fno: <https://w3id.org/function/ontology#> .
+@prefix grel: <http://users.ugent.be/~bjdmeest/function/grel.ttl#> .
+@prefix ma: <http://example.org/my-functions#> .
+
+# Domain-specific name spcaces
+@prefix vg: <http://game.com/videogame> . 
+@prefix schema: <http://schema.org/> .
+@base <http://game.com/> .
+
+<#SteamGames> a rr:TriplesMap;
+    rml:logicalSource [
+        rml:source "games.json" ;
+        rml:referenceFormulation ql:JSONPath ;
+        rml:iterator "$.*";
+    ] ;
+
+    rr:subjectMap [
+        rr:template "http://game.com/videogame/game/{name}" ;
+        rr:class schema:VideoGame;
+    ] ;
+
+    # rr:predicateObjectMap [
+    #     rr:predicate schema:datePublished ;
+    #     rr:objectMap [
+    #         fn:functionValue [
+    #             rr:predicateObjectMap [
+    #                 rr:predicate fno:executes;
+    #                 rr:objectMap [ rr:constant grel:date_toDate ]
+    #             ];
+    #             rr:predicateObjectMap [
+    #                 rr:predicate grel:valueParameter ; 
+    #                 rr:objectMap [ rml:reference "$.release_date" ]
+    #             ] ;
+    #             rr:predicateObjectMap [
+    #                 rr:predicate grel:p_string_pattern ;
+    #                 rr:objectMap [ rr:constant "MMM DD, YYYY" ]
+    #             ]
+    #         ]
+    #     ]
+    # ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:datePublished ;
+        rr:objectMap [
+            rml:reference "release_date" ; 
+            rr:datatype xsd:string 
+        ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate vg:requiredAge ;
+        rr:objectMap [ 
+            rml:reference "required_age" ;
+            rr:datatype xsd:integer 
+        ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:price ;
+        rr:objectMap [ 
+            rml:reference "price" ;
+            rr:datatype xsd:decimal 
+        ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:priceCurrency ;
+        rr:objectMap [ 
+            rr:constant "USD" ;
+            rr:datatype xsd:string 
+        ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:description ;
+        rr:objectMap [ rml:reference "detailed_description" ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:image ;
+        rr:objectMap [ rml:reference "header_image" ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:url ;
+        rr:objectMap [ rml:reference "website" ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate vg:supportsWindows ;
+        rr:objectMap [ rml:reference "windows" ; rr:datatype xsd:boolean ]
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate vg:supportsMac ;
+        rr:objectMap [ rml:reference "mac" ; rr:datatype xsd:boolean ]
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate vg:supportsLinux ;
+        rr:objectMap [ rml:reference "linux" ; rr:datatype xsd:boolean ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:genre ;
+        rr:objectMap [ 
+            rr:template "http://game.com/vocab/genre/{genres[*]}" ; 
+            rr:termType rr:IRI 
+        ]
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:creator ;
+        rr:objectMap [ 
+            rr:template "http://game.com/vocab/developer/{developers[*]}" ; 
+            rr:termType rr:IRI 
+        ]
+    ] .
+
+<#SteamGenres> a rr:TriplesMap;
+    rml:logicalSource [
+        rml:source "games.json";
+        rml:referenceFormulation ql:JSONPath;
+        # On itère directement sur TOUS les genres de TOUS les jeux
+        rml:iterator "$.*.genres[*]"; 
+    ];
+    rr:subjectMap [
+        rr:template "http://game.com/vocab/genre/{@}"; # @ désigne la valeur courante de l'itérateur
+        rr:class schema:Genre; # Ou votre classe personnalisée vg:Genre
+    ];
+    rr:predicateObjectMap [
+        rr:predicate rdfs:label;
+        rr:objectMap [ rml:reference "@" ] # Le nom du genre en string
+    ].
+
+# --- DÉFINITION DES CLASSES DÉVELOPPEURS ---
+<#SteamDevelopers> a rr:TriplesMap;
+    rml:logicalSource [
+        rml:source "games.json";
+        rml:referenceFormulation ql:JSONPath;
+        rml:iterator "$.*.developers[*]";
+    ];
+    rr:subjectMap [
+        rr:template "http://game.com/vocab/developer/{@}";
+        rr:class schema:Organization; # On assume que ce sont des organisations
+    ];
+    rr:predicateObjectMap [
+        rr:predicate rdfs:label;
+        rr:objectMap [ rml:reference "@" ]
+    ].
+
+
+<#SteamPlayer> a rr:TriplesMap;
+rml:logicalSource [
+    a rml:LogicalSource;
+    rml:source "steam-200k.csv";
+    rml:referenceFormulation ql:CSV;
+];
+
+rr:subjectMap [
+    a rr:SubjectMap;
+    rr:template "http://game.com/steam/user/{user_id}";
+    rr:class <http://game.com/vocab#SteamUser>;
+] ;
+
+rr:predicateObjectMap [
+    rr:predicate <http://game.com/vocab#hasPlayed>;
+    rr:objectMap [ rr:template "http://game.com/interaction/{user_id}_{game_name}_{behavior}" ];
+] .
+
+
+<#SteamPlayerInteraction> a rr:TriplesMap;
+    rml:logicalSource [
+        a rml:LogicalSource;
+        rml:source "steam-200k.csv";
+        rml:referenceFormulation ql:CSV;
+    ];
+
+    rr:subjectMap [
+        a rr:SubjectMap;
+        rr:template "http://game.com/interaction/{user_id}_{game_name}_{behavior}";
+        rr:class <http://game.com/vocab#PlayerInteraction>;
+    ];
+
+    rr:predicateObjectMap [
+        rr:predicate <http://game.com/vocab#relatedGame>;
+        rr:objectMap [
+            rr:parentTriplesMap <#SteamGames>;
+            rr:joinCondition [
+                rr:child "game_name";
+                rr:parent "name";
+            ];
+        ];
+    ];
+
+    rr:predicateObjectMap [
+        rr:predicate <http://game.com/vocab#behavior>;
+        rr:objectMap [ rml:reference "behavior"; rr:datatype xsd:string ];
+    ];
+
+    rr:predicateObjectMap [
+        rr:predicate <http://game.com/vocab#value>;
+        rr:objectMap [ rml:reference "value"; rr:datatype xsd:decimal ];
+    ].
